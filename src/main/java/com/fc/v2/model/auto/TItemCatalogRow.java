@@ -47,15 +47,55 @@ public class TItemCatalogRow implements Serializable {
     @ApiModelProperty(value = "被挑出的前置项代号")
     private String itemCode;
 
-    /** 本行待核要素项数 */
+    /** 本行待核要素项数（同码双行只在靠前行记一次） */
     @TableField("qty")
     @ApiModelProperty(value = "本行待核要素项数")
     private BigDecimal qty;
+
+    /** 截至本行挂下未核余额（上一册挂下来、本期没核完的数） */
+    @TableField("carry_qty")
+    @ApiModelProperty(value = "截至本行挂下未核余额")
+    private BigDecimal carryQty;
 
     /** 行落地情形 0待核 1已挂接 2挂起 */
     @TableField("status")
     @ApiModelProperty(value = "行落地情形 0待核 1已挂接 2挂起")
     private Integer status;
+
+    /** 挂起缘故代号 ITEM_NOT_FOUND/QTY_BLANK/QTY_NONPOSITIVE/PRIOR_UNRESOLVED */
+    @TableField("hold_reason")
+    @ApiModelProperty(value = "挂起缘故代号 ITEM_NOT_FOUND/QTY_BLANK/QTY_NONPOSITIVE/PRIOR_UNRESOLVED")
+    private String holdReason;
+
+    /** 进门所属核对期号 */
+    @TableField("period_no")
+    @ApiModelProperty(value = "进门所属核对期号")
+    private Integer periodNo;
+
+    /** 挂起已历核对期数 */
+    @TableField("hold_periods")
+    @ApiModelProperty(value = "挂起已历核对期数")
+    private Integer holdPeriods;
+
+    /** 是否挪入往期册页 0现行 1往期 */
+    @TableField("archived")
+    @ApiModelProperty(value = "是否挪入往期册页 0现行 1往期")
+    private Integer archived;
+
+    /** 同码双行并入的主行id */
+    @JsonSerialize(using = ToStringSerializer.class)
+    @TableField("merged_into")
+    @ApiModelProperty(value = "同码双行并入的主行id")
+    private Long mergedInto;
+
+    /** 主行并掉的次行原册行次 */
+    @TableField("dup_row_no")
+    @ApiModelProperty(value = "主行并掉的次行原册行次")
+    private Integer dupRowNo;
+
+    /** 引擎内部：次行所并主行的原册行次（不落库，落库前由服务层换成 merged_into 主行id） */
+    @TableField(exist = false)
+    private transient Integer mergeRowNo;
 
     /** 删除标记 0正常 1删除 */
     @TableField("del_flag")
@@ -129,12 +169,76 @@ public class TItemCatalogRow implements Serializable {
         this.qty = qty;
     }
 
+    public BigDecimal getCarryQty() {
+        return carryQty;
+    }
+
+    public void setCarryQty(BigDecimal carryQty) {
+        this.carryQty = carryQty;
+    }
+
     public Integer getStatus() {
         return status;
     }
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getHoldReason() {
+        return holdReason;
+    }
+
+    public void setHoldReason(String holdReason) {
+        this.holdReason = holdReason;
+    }
+
+    public Integer getPeriodNo() {
+        return periodNo;
+    }
+
+    public void setPeriodNo(Integer periodNo) {
+        this.periodNo = periodNo;
+    }
+
+    public Integer getHoldPeriods() {
+        return holdPeriods;
+    }
+
+    public void setHoldPeriods(Integer holdPeriods) {
+        this.holdPeriods = holdPeriods;
+    }
+
+    public Integer getArchived() {
+        return archived;
+    }
+
+    public void setArchived(Integer archived) {
+        this.archived = archived;
+    }
+
+    public Long getMergedInto() {
+        return mergedInto;
+    }
+
+    public void setMergedInto(Long mergedInto) {
+        this.mergedInto = mergedInto;
+    }
+
+    public Integer getDupRowNo() {
+        return dupRowNo;
+    }
+
+    public void setDupRowNo(Integer dupRowNo) {
+        this.dupRowNo = dupRowNo;
+    }
+
+    public Integer getMergeRowNo() {
+        return mergeRowNo;
+    }
+
+    public void setMergeRowNo(Integer mergeRowNo) {
+        this.mergeRowNo = mergeRowNo;
     }
 
     public Integer getDelFlag() {

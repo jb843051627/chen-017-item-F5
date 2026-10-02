@@ -25,18 +25,50 @@ CREATE TABLE IF NOT EXISTS t_item_alert_rule (
 CREATE TABLE IF NOT EXISTS t_item_catalog_row (
   id bigint NOT NULL COMMENT '主键',
   batch_no varchar(64) DEFAULT NULL COMMENT '上级目录下发册次号',
-  row_no int DEFAULT NULL COMMENT '原册行次',
+  row_no int DEFAULT NULL COMMENT '原册行次（进门照先后定死，不再改）',
   item_code varchar(64) DEFAULT NULL COMMENT '被挑出的前置项代号',
-  qty decimal(12,2) DEFAULT NULL COMMENT '本行待核要素项数',
+  qty decimal(12,2) DEFAULT NULL COMMENT '本行待核要素项数（同码双行只在靠前行记一次）',
+  carry_qty decimal(12,2) DEFAULT NULL COMMENT '截至本行挂下未核余额（上一册挂下本期未核完的数）',
   status int DEFAULT NULL COMMENT '行落地情形 0待核 1已挂接 2挂起',
+  hold_reason varchar(32) DEFAULT NULL COMMENT '挂起缘故代号 ITEM_NOT_FOUND事项码不在本市名录/QTY_BLANK项数栏空/QTY_NONPOSITIVE报成零或负/PRIOR_UNRESOLVED上一册同事项未了结',
+  period_no int DEFAULT NULL COMMENT '进门所属核对期号',
+  hold_periods int DEFAULT '0' COMMENT '挂起已历核对期数',
+  archived int DEFAULT '0' COMMENT '是否挪入往期册页 0现行 1往期（挂起满两期沉底）',
+  merged_into bigint DEFAULT NULL COMMENT '同码双行并入的主行id（次行空qty挂此号）',
+  dup_row_no int DEFAULT NULL COMMENT '主行并掉的次行原册行次',
+  del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除',
+  create_by varchar(64) DEFAULT NULL COMMENT '创建者',
+  create_time datetime DEFAULT NULL COMMENT '创建时间',
+  update_by varchar(64) DEFAULT NULL COMMENT '更新者',
+  update_time datetime DEFAULT NULL COMMENT '更新时间',
+  remark varchar(500) DEFAULT NULL COMMENT '备注（挂起一句话缘故/核减封顶记要写在这里）',
+  KEY idx_catalog_row_batch (batch_no),
+  KEY idx_catalog_row_item (item_code),
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='上级目录下发册核对行';
+
+-- 本市政务服务事项名录：省册事项码逐条往这本名录上挂；码不在册即挂起 ITEM_NOT_FOUND。
+CREATE TABLE IF NOT EXISTS t_item_city_item (
+  id bigint NOT NULL COMMENT '主键',
+  item_code varchar(64) DEFAULT NULL COMMENT '本市事项码',
+  item_name varchar(128) DEFAULT NULL COMMENT '事项名称',
+  status int DEFAULT '0' COMMENT '名录情形 0在名录 1已摘出',
   del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除',
   create_by varchar(64) DEFAULT NULL COMMENT '创建者',
   create_time datetime DEFAULT NULL COMMENT '创建时间',
   update_by varchar(64) DEFAULT NULL COMMENT '更新者',
   update_time datetime DEFAULT NULL COMMENT '更新时间',
   remark varchar(500) DEFAULT NULL COMMENT '备注',
+  UNIQUE KEY uk_city_item_code (item_code),
   PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='上级目录下发册核对行';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='本市政务服务事项名录';
+
+-- 种子名录：ITEM-1001/1002/1003 在名录，ITEM-9999 已摘出（同不在名录）。
+INSERT IGNORE INTO t_item_city_item (id, item_code, item_name, status, del_flag, create_by, create_time)
+VALUES (1001, 'ITEM-1001', '青屏市示例事项一', 0, 0, 'seed', NOW()),
+       (1002, 'ITEM-1002', '青屏市示例事项二', 0, 0, 'seed', NOW()),
+       (1003, 'ITEM-1003', '青屏市示例事项三', 0, 0, 'seed', NOW()),
+       (9999, 'ITEM-9999', '青屏市已摘出示例事项', 1, 0, 'seed', NOW());
 
 CREATE TABLE IF NOT EXISTS t_item_catalog_ver (
   id bigint NOT NULL COMMENT '主键',
