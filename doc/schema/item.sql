@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS t_item_alert_rule (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='办件逾期风险判定线';
 
+-- t_item_catalog_row 约定：挂起(status=2)连着满两个核对期未落地的行，del_flag 置 1 挪入往期册页，
+-- 现行册不再摆它，事后翻得着（不物理删除）。
 CREATE TABLE IF NOT EXISTS t_item_catalog_row (
   id bigint NOT NULL COMMENT '主键',
   batch_no varchar(64) DEFAULT NULL COMMENT '上级目录下发册次号',
@@ -29,7 +31,7 @@ CREATE TABLE IF NOT EXISTS t_item_catalog_row (
   item_code varchar(64) DEFAULT NULL COMMENT '被挑出的前置项代号',
   qty decimal(12,2) DEFAULT NULL COMMENT '本行待核要素项数',
   status int DEFAULT NULL COMMENT '行落地情形 0待核 1已挂接 2挂起',
-  del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除',
+  del_flag int DEFAULT '0' COMMENT '删除标记 0正常 1删除（挂起满两个核对期未落地者挪入往期册页）',
   create_by varchar(64) DEFAULT NULL COMMENT '创建者',
   create_time datetime DEFAULT NULL COMMENT '创建时间',
   update_by varchar(64) DEFAULT NULL COMMENT '更新者',
